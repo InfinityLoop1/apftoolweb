@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "apftool"
+version = "0.1.0"
+description = "Aperture Science Image Format (apf) encoder and decoder"
+authors = [{name = "Mari (kbity)"}]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["Pillow"]
+
+[project.scripts]
+apftool = "apfcli:main"
