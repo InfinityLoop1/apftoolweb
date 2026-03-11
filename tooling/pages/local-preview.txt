@@ -1,0 +1,15 @@
+Local preview (terminal):
+
+cd /workspaces/apftoolweb
+./tooling/sync-pages-core.sh
+cd pages
+/usr/local/python/3.12.1/bin/python -m http.server 8787
+
+Open in browser:
+http://127.0.0.1:8787
+
+Optional quick check from terminal:
+curl -I http://127.0.0.1:8787
+
+Stop server:
+Ctrl+C

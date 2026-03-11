@@ -3,6 +3,13 @@ h = 200
 headertext = "APERTURE IMAGE FORMAT (c) 1985"
 
 
+def normalize_apf_text(apf_text: str) -> str:
+    lines = [line for line in apf_text.splitlines() if line]
+    if len(lines) < 3:
+        raise ValueError("Invalid APF: expected header, lineskip, and data")
+    return "\n".join([lines[0], lines[1], "".join(lines[2:])])
+
+
 def build_bitmap(flat_pixels, width, height):
     bitmap = []
     index = 0
@@ -79,7 +86,8 @@ def encode_flat_bitmap(flat_pixels, width=320, height=200, lineskip=1, findbestl
 
 
 def decodeapf_flat(apf):
-    apf_list = apf.splitlines()
+    apf_text = normalize_apf_text(apf)
+    apf_list = apf_text.splitlines()
     apf_lines = []
     for line in apf_list:
         if line:

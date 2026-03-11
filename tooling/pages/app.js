@@ -1,19 +1,24 @@
 const imageInput = document.getElementById("imageInput");
 const uploadForm = document.getElementById("uploadForm");
+const originalHeading = document.getElementById("originalHeading");
+const convertedHeading = document.getElementById("convertedHeading");
 const originalPreview = document.getElementById("originalPreview");
+const originalNote = document.getElementById("originalNote");
 const convertedCanvas = document.getElementById("convertedCanvas");
 const downloadApf = document.getElementById("downloadApf");
 const downloadPng = document.getElementById("downloadPng");
 const status = document.getElementById("status");
 const statusText = document.getElementById("statusText");
 const errorBox = document.getElementById("error");
+const originalPanel = document.getElementById("originalPanel");
+const imagesSection = document.getElementById("imagesSection");
 const result = document.getElementById("result");
 
+const convertedContext = convertedCanvas.getContext("2d", { willReadFrequently: true });
 const hiddenCanvas = document.createElement("canvas");
 hiddenCanvas.width = 320;
 hiddenCanvas.height = 200;
 const hiddenContext = hiddenCanvas.getContext("2d", { willReadFrequently: true });
-const convertedContext = convertedCanvas.getContext("2d", { willReadFrequently: true });
 
 let pyodideInstance;
 let apfTextUrl;
@@ -21,6 +26,8 @@ let pngUrl;
 let displayedProgress = 0;
 let progressAnimationFrame;
 let autoProgressTimer;
+let frontendEncodeConvert;
+let frontendDecodeConvert;
 
 function clampProgress(value) {
     return Math.max(0, Math.min(100, value));
@@ -122,18 +129,39 @@ async function loadRuntime() {
     startAutoProgress(88, 1.4, 130);
     pyodideInstance = await loadPyodide();
     setStatus("loading python runtime", 55, { duration: 300 });
-    const runtimeSource = await fetch("./apf_runtime.py").then((response) => response.text());
-    setStatus("loading python runtime", 75, { duration: 300 });
+    const runtimeSource = await fetch("./apf_core.py").then((response) => response.text());
     await pyodideInstance.runPythonAsync(runtimeSource);
+    setStatus("loading python runtime", 75, { duration: 260 });
+    await pyodideInstance.runPythonAsync(`
+def frontend_encode_convert(flat_pixels):
+    apf_text = encode_flat_bitmap(flat_pixels, 320, 200, 3, True)
+    decoded_flat = decodeapf_flat(apf_text)
+    return apf_text, decoded_flat
+
+def frontend_decode_convert(apf_text):
+    normalized = normalize_apf_text(apf_text)
+    return decodeapf_flat(normalized)
+`);
+    frontendEncodeConvert = pyodideInstance.globals.get("frontend_encode_convert");
+    frontendDecodeConvert = pyodideInstance.globals.get("frontend_decode_convert");
     stopAutoProgress();
     setStatus("python runtime ready", 100, { duration: 220 });
     uploadForm.classList.remove("hidden");
 }
 
-function createOriginalPreview(file) {
+function showOriginalImage(file) {
     const objectUrl = URL.createObjectURL(file);
     originalPreview.onload = () => URL.revokeObjectURL(objectUrl);
     originalPreview.src = objectUrl;
+    originalPreview.classList.remove("hidden");
+    originalNote.classList.add("hidden");
+}
+
+function showOriginalApfNote(filename) {
+    originalPreview.removeAttribute("src");
+    originalPreview.classList.add("hidden");
+    originalNote.textContent = `Input APF file: ${filename}`;
+    originalNote.classList.remove("hidden");
 }
 
 function fileBaseName(name) {
@@ -202,47 +230,56 @@ function renderBitmap(flatBitmap) {
     convertedContext.putImageData(output, 0, 0);
 }
 
-async function updateDownloads(baseName, apfText) {
-    revokeDownloads();
-    apfTextUrl = URL.createObjectURL(new Blob([apfText], { type: "text/plain;charset=utf-8" }));
-    pngUrl = await new Promise((resolve) => {
-        convertedCanvas.toBlob((blob) => {
-            resolve(URL.createObjectURL(blob));
-        }, "image/png");
+async function canvasToPngUrl() {
+    return new Promise((resolve) => {
+        convertedCanvas.toBlob((blob) => resolve(URL.createObjectURL(blob)), "image/png");
     });
-    downloadApf.href = apfTextUrl;
-    downloadApf.download = `${baseName}.apf`;
-    downloadPng.href = pngUrl;
-    downloadPng.download = `${baseName}-converted.png`;
 }
 
-async function processFile(file) {
-    if (!file) {
-        return;
+async function updateDownloads(baseName, flatBitmap, apfText = null) {
+    revokeDownloads();
+    renderBitmap(flatBitmap);
+    pngUrl = await canvasToPngUrl();
+
+    if (apfText !== null) {
+        apfTextUrl = URL.createObjectURL(new Blob([apfText], { type: "text/plain;charset=utf-8" }));
+        downloadApf.href = apfTextUrl;
+        downloadApf.download = `${baseName}.apf`;
+        downloadApf.classList.remove("hidden");
+    } else {
+        downloadApf.classList.add("hidden");
     }
 
+    downloadPng.href = pngUrl;
+    downloadPng.download = apfText === null ? `${baseName}.png` : `${baseName}-converted.png`;
+}
+
+async function processImageFile(file) {
     try {
         clearError();
         setStatus("converting image", 6, { immediate: true });
         startAutoProgress(94, 1.7, 120);
-        createOriginalPreview(file);
+        originalPanel.classList.remove("hidden");
+        imagesSection.classList.remove("single");
+        originalHeading.textContent = "Original image";
+        convertedHeading.textContent = "Converted APF image";
+        showOriginalImage(file);
         setStatus("converting image", 20, { duration: 220 });
         const flatBitmap = await fileToBitmap(file);
         setStatus("converting image", 42, { duration: 240 });
         const pyBitmap = pyodideInstance.toPy(flatBitmap);
         setStatus("converting image", 58, { duration: 240 });
-        const encodeFlatBitmap = pyodideInstance.globals.get("encode_flat_bitmap");
-        const decodeapfFlat = pyodideInstance.globals.get("decodeapf_flat");
-        const apfText = encodeFlatBitmap(pyBitmap, 320, 200, 3, true);
+        const resultProxy = frontendEncodeConvert(pyBitmap);
         setStatus("converting image", 74, { duration: 240 });
         pyBitmap.destroy();
-        const decodedProxy = decodeapfFlat(apfText);
+        const apfText = resultProxy.get(0);
+        const decodedBitmapProxy = resultProxy.get(1);
         setStatus("converting image", 86, { duration: 200 });
-        const decodedBitmap = decodedProxy.toJs();
-        decodedProxy.destroy();
-        renderBitmap(decodedBitmap);
+        const decodedBitmap = decodedBitmapProxy.toJs();
+        decodedBitmapProxy.destroy();
+        resultProxy.destroy();
         setStatus("converting image", 94, { duration: 180 });
-        await updateDownloads(fileBaseName(file.name), apfText);
+        await updateDownloads(fileBaseName(file.name), decodedBitmap, apfText);
         result.classList.remove("hidden");
         stopAutoProgress();
         setStatus("conversion complete", 100, { duration: 220 });
@@ -251,6 +288,47 @@ async function processFile(file) {
         result.classList.add("hidden");
         showError(`conversion failed: ${error.message || error}`);
         setStatus("ready", 0, { duration: 220 });
+    }
+}
+
+async function processApfFile(file) {
+    try {
+        clearError();
+        setStatus("decoding apf", 6, { immediate: true });
+        startAutoProgress(94, 1.7, 120);
+        originalPanel.classList.add("hidden");
+        imagesSection.classList.add("single");
+        convertedHeading.textContent = "Decoded PNG";
+        setStatus("decoding apf", 28, { duration: 220 });
+        const apfText = new TextDecoder("utf-8").decode(await file.arrayBuffer());
+        setStatus("decoding apf", 58, { duration: 240 });
+        const decodedBitmapProxy = frontendDecodeConvert(apfText);
+        setStatus("decoding apf", 82, { duration: 220 });
+        const decodedBitmap = decodedBitmapProxy.toJs();
+        decodedBitmapProxy.destroy();
+        setStatus("decoding apf", 94, { duration: 180 });
+        await updateDownloads(fileBaseName(file.name), decodedBitmap, null);
+        result.classList.remove("hidden");
+        stopAutoProgress();
+        setStatus("decode complete", 100, { duration: 220 });
+    } catch (error) {
+        stopAutoProgress();
+        result.classList.add("hidden");
+        showError(`decode failed: ${error.message || error}`);
+        setStatus("ready", 0, { duration: 220 });
+    }
+}
+
+async function processFile(file) {
+    if (!file) {
+        return;
+    }
+
+    const filename = (file.name || "").toLowerCase();
+    if (filename.endsWith(".apf")) {
+        await processApfFile(file);
+    } else {
+        await processImageFile(file);
     }
 }
 
