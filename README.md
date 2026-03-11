@@ -22,3 +22,17 @@ dependancies: `PIL, io` (apftool)
 dependancies: `sys, os, io` (apfcli)
 
 most of these a builtins but you may need to install PIL seporately
+
+cloudflare pages deployment:
+
+this repo now includes a static pages app in `pages/` that runs the apf conversion in the browser using python via pyodide.
+
+deploy settings:
+
+```
+framework preset: none
+build command: 
+build output directory: pages
+```
+
+after connecting the repo in cloudflare pages, set the output directory to `pages` and deploy.
