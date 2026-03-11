@@ -10,7 +10,6 @@
     <section class="page-layout">
         <aside class="sidebar">
             <h2>what is .apf</h2>
-            <h3>what it is</h3>
             <p>APF stands for Aperture Image Format, presented as an in-universe Aperture Science format from Valve's Portal.</p>
             <h3>how compression works</h3>
             <p>A 1-bit black-and-white bitmap is stored and compressed with run-length encoding, writing alternating black and white run counts in sequence.</p>
@@ -21,24 +20,25 @@
         </aside>
 
         <main class="container">
-            <h1>APF Image Converter</h1>
+            <h1>.APF Image Converter</h1>
             <form id="uploadForm" class="upload-form hidden">
                 <label for="imageInput" class="upload-trigger">Select</label>
-                <span class="upload-copy">or paste image</span>
-                <input id="imageInput" type="file" accept="image/*">
+                <span class="upload-copy">image/.apf or paste image</span>
+                <input id="imageInput" type="file" accept="image/*,.apf,text/plain">
             </form>
 
             <p id="status" class="status"><span id="statusText" class="status-text">loading python runtime</span></p>
             <p id="error" class="error hidden"></p>
 
             <section id="result" class="result hidden">
-                <section class="images">
-                    <div class="panel">
-                        <h2>Original</h2>
+                <section id="imagesSection" class="images">
+                    <div id="originalPanel" class="panel">
+                        <h2 id="originalHeading">Original</h2>
                         <img id="originalPreview" alt="Original upload preview">
+                        <p id="originalNote" class="panel-note hidden"></p>
                     </div>
                     <div class="panel">
-                        <h2>Converted</h2>
+                        <h2 id="convertedHeading">Converted</h2>
                         <canvas id="convertedCanvas" width="320" height="200" aria-label="Converted APF preview"></canvas>
                     </div>
                 </section>
@@ -49,6 +49,11 @@
             </section>
         </main>
     </section>
+
+    <footer class="footer">
+        <span>created by <a href="https://github.com/kbity" target="_blank" rel="noopener">mari</a></span>
+        <span class="footer-sub">frontend design by <a href="https://infinityloop.me" target="_blank" rel="noopener">infinityloop</a></span>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/pyodide/v0.27.5/full/pyodide.js"></script>
     <script type="module" src="./app.js"></script>
