@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>.apf Converter</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <section class="page-layout">
+        <aside class="sidebar">
+            <h2>what is .apf</h2>
+            <h3>what it is</h3>
+            <p>APF stands for Aperture Image Format, presented as an in-universe Aperture Science format from Valve's Portal.</p>
+            <h3>how compression works</h3>
+            <p>A 1-bit black-and-white bitmap is stored and compressed with run-length encoding, writing alternating black and white run counts in sequence.</p>
+            <p>It also supports a line-skip pass order so rows are traversed in a stepped pattern instead of plain top-to-bottom, then decoded back with the same pass logic.</p>
+            <h3>limitations</h3>
+            <p>Images are converted to exactly 320x200 and pure black/white only. No grayscale and no color are preserved.</p>
+            <p>Very short details can disappear after resize + 1-bit conversion, and output PNG downloads keep APF dimensions and aspect ratio.</p>
+        </aside>
+
+        <main class="container">
+            <h1>APF Image Converter</h1>
+            <form id="uploadForm" class="upload-form hidden">
+                <label for="imageInput" class="upload-trigger">Select</label>
+                <span class="upload-copy">or paste image</span>
+                <input id="imageInput" type="file" accept="image/*">
+            </form>
+
+            <p id="status" class="status"><span id="statusText" class="status-text">loading python runtime</span></p>
+            <p id="error" class="error hidden"></p>
+
+            <section id="result" class="result hidden">
+                <section class="images">
+                    <div class="panel">
+                        <h2>Original</h2>
+                        <img id="originalPreview" alt="Original upload preview">
+                    </div>
+                    <div class="panel">
+                        <h2>Converted</h2>
+                        <canvas id="convertedCanvas" width="320" height="200" aria-label="Converted APF preview"></canvas>
+                    </div>
+                </section>
+                <section class="downloads">
+                    <a id="downloadApf" href="#" download="image.apf">download as .apf</a>
+                    <a id="downloadPng" href="#" download="image-converted.png">download as .png</a>
+                </section>
+            </section>
+        </main>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.27.5/full/pyodide.js"></script>
+    <script type="module" src="./app.js"></script>
+</body>
+</html>
