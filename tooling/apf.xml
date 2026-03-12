@@ -8,4 +8,12 @@
     </magic>
   </mime-type>
 
+  
+  <mime-type type="image/x-apf2">
+    <comment>Aperture Image Format 2 image</comment>
+    <magic priority="100">
+      <match value="APERTURE IMAGE FORMAT (c) 1993" type="string" offset="0" />
+    </magic>
+  </mime-type>
+
 </mime-info>
