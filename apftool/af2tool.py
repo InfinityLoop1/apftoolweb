@@ -509,77 +509,19 @@ def encodeaf2(img: bytes, lineskip: int = 1, findbestlineskip: bool = False, leg
     return apftext
 
 # the following is an example of usage of the decoder. it expects a string as an input, outputs a bytes image.
-#file_path = 'randombullshitgo.af2'
+#file_path = 'input.af2'
 #with open(file_path, 'r') as f:
 #    file_content = f.read()
-#decodedapf = decodeaf2(file_content, 'GIF')
-#with open("output.gif", "wb") as f:
+#decodedapf = decodeaf2(file_content, 'PNG')
+#with open("output.png", "wb") as f:
 #    f.write(decodedapf)
 
 # the following is an example of usage of the encoder. it expects a bytes image as an input, outputs a string.
-file_path = '3DFix.gif'
-with open(file_path, "rb") as f:
-    data = io.BytesIO()
-    data = f.read()
+#file_path = 'input.png'
+#with open(file_path, "rb") as f:
+#    data = io.BytesIO()
+#    data = f.read()
 
-encodedapf = encodeaf2(data, 1, False, True, False)
-with open("3DFix_l.af2", "w") as f:
-    f.write(encodedapf)
-
-file_path = '3DFix_l.af2'
-with open(file_path, 'r') as f:
-    file_content = f.read()
-decodedapf = decodeaf2(file_content)
-with open("decoded_3DFix_l.gif", "wb") as f:
-    f.write(decodedapf)
-
-#another
-file_path = 'ball.gif'
-with open(file_path, "rb") as f:
-    data = io.BytesIO()
-    data = f.read()
-
-encodedapf = encodeaf2(data, 1, False, True, True)
-with open("ball_l.af2", "w") as f:
-    f.write(encodedapf)
-
-file_path = 'ball_l.af2'
-with open(file_path, 'r') as f:
-    file_content = f.read()
-decodedapf = decodeaf2(file_content)
-with open("decoded_ball_l.gif", "wb") as f:
-    f.write(decodedapf)
-
-#another
-file_path = 'bacon.jpg'
-with open(file_path, "rb") as f:
-    data = io.BytesIO()
-    data = f.read()
-
-encodedapf = encodeaf2(data, 1, False, True, False)
-with open("bacon_l.af2", "w") as f:
-    f.write(encodedapf)
-
-file_path = 'bacon_l.af2'
-with open(file_path, 'r') as f:
-    file_content = f.read()
-decodedapf = decodeaf2(file_content)
-with open("decoded_bacon_l.png", "wb") as f:
-    f.write(decodedapf)
-
-#another
-file_path = 'block_tired.png'
-with open(file_path, "rb") as f:
-    data = io.BytesIO()
-    data = f.read()
-
-encodedapf = encodeaf2(data, 1, False, True, True)
-with open("block_tired_l.af2", "w") as f:
-    f.write(encodedapf)
-
-file_path = 'block_tired_l.af2'
-with open(file_path, 'r') as f:
-    file_content = f.read()
-decodedapf = decodeaf2(file_content)
-with open("decoded_block_tired_l.png", "wb") as f:
-    f.write(decodedapf)
+#encodedapf = encodeaf2(data, 1, False, True, False)
+#with open("output.af2", "w") as f:
+#    f.write(encodedapf)
